@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENV=development
+      - CORS_ORIGIN=http://localhost:3000
+    volumes:
+      - ./backend:/app
+    networks:
+      - nodemeta
+
+  payments:
+    build:
+      context: ./payments
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+    volumes:
+      - ./payments:/app
+    networks:
+      - nodemeta
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8080
+      - VITE_PAYMENTS_URL=http://localhost:3003
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+      - payments
+    networks:
+      - nodemeta
+
+networks:
+  nodemeta:
+    driver: bridge
